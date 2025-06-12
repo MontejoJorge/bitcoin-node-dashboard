@@ -1,5 +1,5 @@
 # Bitcoin Node Dashboard
-![GitHub Tag](https://img.shields.io/github/v/tag/montejojorge/bitcoin-node-dashboard)
+![Docker Image Version](https://img.shields.io/docker/v/montejojorge/bitcoin-node-dashboard)
 ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/montejojorge/bitcoin-node-dashboard/latest)
 ![Static Badge](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
