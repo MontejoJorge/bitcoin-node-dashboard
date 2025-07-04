@@ -10,11 +10,10 @@ import { PieChart, PieSeriesOption } from 'echarts/charts';
 import { LabelLayout } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
 
-import { usePeerStore } from '@/store/peerStore';
 import { FaSquare } from 'react-icons/fa6';
 import clsx from 'clsx';
 import LoadingSpiner from '@/components/UI/LoadingSpiner';
-import { IPeer } from '@/store/types';
+import { IPeer } from '@/types';
 
 type EChartsOption = echarts.ComposeOption<
    TooltipComponentOption | LegendComponentOption | PieSeriesOption
@@ -29,7 +28,7 @@ echarts.use([
 ]);
 
 
-export default function TopClientsChart({ peers }: { peers: IPeer[] }) {
+export default function TopClientsChart({ peers, loading = false }: { peers: IPeer[], loading?: boolean }) {
 
    const [chart, setChart] = useState<echarts.ECharts>();
    const chartRef = useRef<HTMLDivElement>(null);
@@ -40,8 +39,6 @@ export default function TopClientsChart({ peers }: { peers: IPeer[] }) {
    }
 
    const [mostCommonClients, setMostCommonClients] = useState<Map<string, number>>(emtpyClientMap);
-
-   const peerStore = usePeerStore();
 
    const colors = [
       "#9e0142",
@@ -106,10 +103,10 @@ export default function TopClientsChart({ peers }: { peers: IPeer[] }) {
    return (
       <div className='grid'>
          <div className='col-start-1 row-start-1 grid grid-cols-1 md:grid-cols-2'>
-            <div ref={chartRef} className={clsx(peerStore.loading && 'animate-pulse')} style={{ height: '300px' }} />
+            <div ref={chartRef} className={clsx(loading && 'animate-pulse')} style={{ height: '300px' }} />
             <ul className="pt-6 md:pt-0">
-               {peerStore.loading && loadingList()}
-               {!peerStore.loading && (
+               {loading && loadingList()}
+               {!loading && (
                   Array.from(mostCommonClients).map(([client, count], index) => {
                      const total = peers.length;
                      const percentage = ((count / total) * 100).toFixed(0);
@@ -130,7 +127,7 @@ export default function TopClientsChart({ peers }: { peers: IPeer[] }) {
                )}
             </ul>
          </div>
-         {peerStore.loading && <LoadingOverlay />}
+         {loading && <LoadingOverlay />}
       </div>
    );
 }

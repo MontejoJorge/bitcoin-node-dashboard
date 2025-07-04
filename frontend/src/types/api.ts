@@ -1,8 +1,4 @@
-export interface IBaseApiStore {
-   loading: boolean;
-   fetch: () => void;
-}
-
+// API Response Types
 export interface IMainStore {
    totalConnections: number;
    totalUploadTraffic: number;
@@ -27,6 +23,11 @@ export interface IBlockchainStore {
    lastBlockTime: number;
 }
 
+export interface INetwork {
+   available: boolean;
+   address: string | undefined;
+}
+
 export interface INetworkInfo {
    uploadTarget: {
       target: number;
@@ -38,11 +39,6 @@ export interface INetworkInfo {
       tor: INetwork;
       i2p: INetwork;
    };
-}
-
-export interface INetwork {
-   available: boolean;
-   address: string | undefined;
 }
 
 export interface IPeer {
@@ -57,4 +53,20 @@ export interface IPeer {
    subversion: string;
    connection_type: string;
    inbound: boolean;
+}
+
+// API Response types
+export interface HomeApiResponse {
+   main: IMainStore;
+   node: INodeStore;
+   blockchain: IBlockchainStore;
+   networkInfo: INetworkInfo;
+   peers: IPeer[];
+}
+
+export interface PeersApiResponse {
+   allTimeUploadTraffic: number;
+   allTimeDownloadTraffic: number;
+   banned: number;
+   peers: IPeer[];
 }

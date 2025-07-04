@@ -2,12 +2,14 @@ import Card from "@/components/UI/Card";
 import { TiArrowSortedDown, TiArrowSortedUp } from "react-icons/ti";
 import { FaArrowRightLong, FaArrowLeftLong, FaArrowDown, FaArrowUp, FaBan, FaCircleNodes, FaCloudArrowDown, FaCloudArrowUp, FaIdCardClip } from "react-icons/fa6";
 import { TbWorld } from "react-icons/tb";
-import { usePeerStore } from "@/store/peerStore";
 import { formatBytes, formatLargeNumber, formatUnixTime } from "@/utils/utils";
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import clsx from "clsx";
 import React from "react";
-import useRefreshData from "@/hooks/useRefreshData";
+import { useQuery } from '@tanstack/react-query';
+import { bitcoinApi } from '@/store/api/bitcoinApi';
+import { useRefreshTimeStore } from '@/store/refreshTimeStore';
+import { IPeer } from '@/types';
 import Header from "@/components/Header";
 
 type TableField = {
@@ -20,10 +22,31 @@ function Peers() {
    const [sortField, setSortField] = useState("");
    const [order, setOrder] = useState("");
    const [showDetails, setShowDetails] = useState<number | null>(null);
+   const refreshTimeStore = useRefreshTimeStore();
 
-   const peerStore = usePeerStore();
+   const { data: peersData, isLoading } = useQuery({
+      queryKey: ['bitcoin', 'peers'],
+      queryFn: bitcoinApi.peers,
+      refetchInterval: refreshTimeStore.refreshTime > 0 ? refreshTimeStore.refreshTime : false,
+   });
 
-   useRefreshData([peerStore]);
+   // Sort peers locally
+   const sortedPeers = useMemo(() => {
+      if (!peersData?.peers || !sortField) return peersData?.peers ?? [];
+      
+      return [...peersData.peers].sort((a, b) => {
+         const aVal = a[sortField as keyof IPeer];
+         const bVal = b[sortField as keyof IPeer];
+         
+         if (typeof aVal === 'string' && typeof bVal === 'string') {
+            return order === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+         } else if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return order === 'asc' ? aVal - bVal : bVal - aVal;
+         } else {
+            return order === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+         }
+      });
+   }, [peersData?.peers, sortField, order]);
 
    const tableFields: TableField[] = [{
       name: 'Id',
@@ -57,10 +80,6 @@ function Peers() {
 
    //To get the show property on showOrHideValue function
    const tableFieldsHashMap = new Map(tableFields.map((field) => [field.key, field]));
-
-   useEffect(() => {
-      peerStore.sortPeers(sortField, order);
-   }, [peerStore.peers, sortField, order]);
 
 
    function formatServices(services: string[]): React.ReactNode {
@@ -132,27 +151,27 @@ function Peers() {
    return (
       <>
          <Header
-            loading={peerStore.loading}
+            loading={isLoading}
             data={[
                {
                   icon: <FaCircleNodes size={70} color="#36a3f7" />,
                   title: "Total Connections",
-                  value: formatLargeNumber(peerStore.peers.length)
+                  value: formatLargeNumber(peersData?.peers.length ?? 0)
                },
                {
                   icon: <FaCloudArrowUp size={70} color="#f4516c" />,
                   title: "All Time Upload Traffic",
-                  value: formatBytes(peerStore.allTimeUploadTraffic)
+                  value: formatBytes(peersData?.allTimeUploadTraffic ?? 0)
                },
                {
                   icon: <FaCloudArrowDown size={70} color="#34bfa3" />,
                   title: "All Time Download Traffic",
-                  value: formatBytes(peerStore.allTimeDownloadTraffic)
+                  value: formatBytes(peersData?.allTimeDownloadTraffic ?? 0)
                },
                {
                   icon: <FaBan size={70} color="#ffcb8c" />,
                   title: "Banned Peers",
-                  value: formatLargeNumber(peerStore.banned)
+                  value: formatLargeNumber(peersData?.banned ?? 0)
                }
             ]}
          />
@@ -192,7 +211,7 @@ function Peers() {
                      </tr>
                   </thead>
                   <tbody>
-                     {peerStore.loading && (
+                     {isLoading && (
                         Array.from({ length: 10 }).map((_, index) => (
                            <tr key={index} className="border-b odd:bg-gray-50">
                               <td colSpan={tableFields.length}>
@@ -201,7 +220,7 @@ function Peers() {
                            </tr>
                         ))
                      )}
-                     {!peerStore.loading && peerStore.peers.map((peer) => (
+                     {!isLoading && sortedPeers.map((peer) => (
                         <React.Fragment key={peer.id}>
                            <tr
                               onClick={() => handleRowClick(peer.id)}

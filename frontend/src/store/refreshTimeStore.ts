@@ -1,25 +1,20 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
-type RefreshStore = {
+type RefreshTimeStore = {
    refreshTime: number;
    setRefreshTime: (time: number) => void;
-   refresh: boolean;
-   triggerRefresh: () => void;
 }
 
-export const useRefreshStore = create<RefreshStore>()(
+export const useRefreshTimeStore = create<RefreshTimeStore>()(
    devtools(
       persist(
          (set) => ({
             refreshTime: 15000,
             setRefreshTime: (time: number) => set({ refreshTime: time }),
-            refresh: false,
-            triggerRefresh: () => set((state) => ({ refresh: !state.refresh }))
          }),
          {
             name: 'refreshTime',
-            partialize: (state) => ({ refreshTime: state.refreshTime }),
          }
       )
    )

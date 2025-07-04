@@ -4,8 +4,18 @@ import React, { useEffect } from 'react';
 import Login from '@/views/Login';
 import { useUserStore } from "@/store/userStore";
 import { Bounce, ToastContainer } from 'react-toastify';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import 'react-toastify/dist/ReactToastify.css';
+
+const queryClient = new QueryClient({
+   defaultOptions: {
+      queries: {
+         staleTime: 5000,
+         refetchOnWindowFocus: false,
+      },
+   },
+});
 
 const AuthLayout: React.FC = () => {
 
@@ -72,9 +82,11 @@ const router = createBrowserRouter([
 
 const App: React.FC = () => {
    return (
-      <div className="bg-gray-100 min-h-full pb-5">
-         <RouterProvider router={router} />
-      </div>
+      <QueryClientProvider client={queryClient}>
+         <div className="bg-gray-100 min-h-full pb-5">
+            <RouterProvider router={router} />
+         </div>
+      </QueryClientProvider>
    );
 };
 

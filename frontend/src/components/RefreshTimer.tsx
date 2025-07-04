@@ -1,7 +1,8 @@
 import Select, { components, ControlProps, Props as SelectProps } from 'react-select';
-import { useRefreshStore } from "@/store/refreshStore";
+import { useRefreshTimeStore } from "@/store/refreshTimeStore";
 import { FaRotate } from 'react-icons/fa6';
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 function Control({ children, ...props }: ControlProps) {
    const [rotate, setRotate] = useState(false);
@@ -26,12 +27,14 @@ function Control({ children, ...props }: ControlProps) {
 }
 
 export default function RefreshTime(props: SelectProps) {
-   const refreshStore = useRefreshStore();
+   const refreshTimeStore = useRefreshTimeStore();
+   const queryClient = useQueryClient();
 
    function onRefreshClick(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) {
       e.preventDefault();
       e.stopPropagation();
-      refreshStore.triggerRefresh();
+      // Manually trigger refresh of bitcoin queries
+      queryClient.invalidateQueries({ queryKey: ['bitcoin'] });
    }
 
    const optionsMap = new Map([
@@ -48,10 +51,10 @@ export default function RefreshTime(props: SelectProps) {
          isSearchable={false}
          // @ts-expect-error onRefreshMouseDown
          onRefreshMouseDown={onRefreshClick}
-         onChange={(e) => refreshStore.setRefreshTime((e as { value: number }).value)}
+         onChange={(e) => refreshTimeStore.setRefreshTime((e as { value: number }).value)}
          components={{ Control: Control }}
          options={Array.from(optionsMap).map(([value, label]) => ({ value, label }))}
-         defaultValue={{ value: refreshStore.refreshTime, label: optionsMap.get(refreshStore.refreshTime)}}
+         defaultValue={{ value: refreshTimeStore.refreshTime, label: optionsMap.get(refreshTimeStore.refreshTime)}}
          styles={{
             control: (baseStyles) => ({
                ...baseStyles,

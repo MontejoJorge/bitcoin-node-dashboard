@@ -28,144 +28,149 @@ import {
 import StatsCard from '@/components/StatsCard';
 import TopClientsChart from './TopClientsChart';
 import Card from '@/components/UI/Card';
-import useRefreshData from '@/hooks/useRefreshData';
-import { useHomeStore } from '@/store/homeStore';
+import { useQuery } from '@tanstack/react-query';
+import { bitcoinApi } from '@/store/api/bitcoinApi';
+import { useRefreshTimeStore } from '@/store/refreshTimeStore';
 import Header from '@/components/Header';
 
 
 const Home = () => {
-   const homeStore = useHomeStore();
+   const refreshTimeStore = useRefreshTimeStore();
 
-   useRefreshData([homeStore]);
+   const { data: homeData, isLoading } = useQuery({
+      queryKey: ['bitcoin', 'home'],
+      queryFn: bitcoinApi.home,
+      refetchInterval: refreshTimeStore.refreshTime > 0 ? refreshTimeStore.refreshTime : false,
+   });
 
    return (
       <>
          <Header
-            loading={homeStore.loading}
+            loading={isLoading}
             data={[
                {
                   icon: <FaCircleNodes size={70} color="#36a3f7" />,
                   title: "Total Connections",
-                  value: formatLargeNumber(homeStore.main.totalConnections)
+                  value: formatLargeNumber(homeData?.main.totalConnections ?? 0)
                },
                {
                   icon: <FaCloudArrowUp size={70} color="#f4516c" />,
                   title: "Upload Traffic",
-                  value: formatBytes(homeStore.main.totalUploadTraffic)
+                  value: formatBytes(homeData?.main.totalUploadTraffic ?? 0)
                },
                {
                   icon: <FaCloudArrowDown size={70} color="#34bfa3" />,
                   title: "Download Traffic",
-                  value: formatBytes(homeStore.main.totalDownloadTraffic)
+                  value: formatBytes(homeData?.main.totalDownloadTraffic ?? 0)
                },
                {
                   icon: <FaDatabase size={70} color="#ffcb8c" />,
                   title: "TX in Mempool",
-                  value: formatLargeNumber(homeStore.main.txInMeempool)
+                  value: formatLargeNumber(homeData?.main.txInMeempool ?? 0)
                }
             ]}
          />
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 m-3 mt-7">
             <StatsCard
                title="Node"
-               loading={homeStore.loading}
+               loading={isLoading}
                statsList={[
                   {
                      icon: <FaIdCard />,
                      name: 'Client',
-                     value: homeStore.node.client
+                     value: homeData?.node.client ?? ''
                   },
                   {
                      icon: <FaArrowRightArrowLeft />,
                      name: 'Protocol',
-                     value: homeStore.node.protocolVersion
+                     value: homeData?.node.protocolVersion ?? 0
                   },
                   {
                      icon: <FaNetworkWired />,
                      name: 'Port',
-                     value: homeStore.node.port
+                     value: homeData?.node.port ?? 0
                   },
                   {
                      icon: <FaClock />,
                      name: 'Uptime',
-                     value: formatSeconds(homeStore.node.uptime)
+                     value: formatSeconds(homeData?.node.uptime ?? 0)
                   },
                   {
                      icon: <FaBullhorn />,
                      name: 'Services',
-                     value: homeStore.node.services
+                     value: homeData?.node.services ?? []
                   }
                ]}
             />
             <StatsCard
                title="Blockchain"
-               loading={homeStore.loading}
+               loading={isLoading}
                statsList={[
                   {
                      icon: <FaLink />,
                      name: 'Chain',
-                     value: capitalizeFirst(homeStore.blockchain.chain)
+                     value: capitalizeFirst(homeData?.blockchain.chain ?? '')
                   },
                   {
                      icon: <FaHardDrive />,
                      name: 'Size',
-                     value: formatBytes(homeStore.blockchain.size)
+                     value: formatBytes(homeData?.blockchain.size ?? 0)
                   },
                   {
                      icon: <FaMicrochip />,
                      name: 'Difficulty',
-                     value: compactNumber(homeStore.blockchain.difficulty)
+                     value: compactNumber(homeData?.blockchain.difficulty ?? 0)
                   },
                   {
                      icon: <FaGears />,
                      name: 'Hashrate',
-                     value: formatHashPerSecond(homeStore.blockchain.hashRate)
+                     value: formatHashPerSecond(homeData?.blockchain.hashRate ?? 0)
                   },
                   {
                      icon: <FaCube />,
                      name: 'Last Block',
-                     value: formatLargeNumber(homeStore.blockchain.lastBlock)
+                     value: formatLargeNumber(homeData?.blockchain.lastBlock ?? 0)
                   },
                   {
                      icon: <FaClock />,
                      name: 'Last Block Time',
-                     value: formatUnixToTimeAgo(homeStore.blockchain.lastBlockTime)
+                     value: formatUnixToTimeAgo(homeData?.blockchain.lastBlockTime ?? 0)
                   }
                ]}
             />
             <StatsCard
                title="Network"
-               loading={homeStore.loading}
+               loading={isLoading}
                statsList={[
                   {
                      icon: null,
                      name: 'IPv4',
-                     value: homeStore.networkInfo.networks.ipv4.available
+                     value: homeData?.networkInfo.networks.ipv4.available ?? false
                   },
                   {
                      icon: null,
                      name: 'IPv6',
-                     value: homeStore.networkInfo.networks.ipv6.available
+                     value: homeData?.networkInfo.networks.ipv6.available ?? false
                   },
                   {
                      icon: null,
                      name: 'Tor',
-                     value: homeStore.networkInfo.networks.tor.available
+                     value: homeData?.networkInfo.networks.tor.available ?? false
                   },
                   {
                      icon: null,
                      name: 'Traffic Limit Set',
-                     value: homeStore.networkInfo.uploadTarget.target > 0
+                     value: (homeData?.networkInfo.uploadTarget.target ?? 0) > 0
                   },
                   {
                      icon: null,
                      name: 'Traffic Limited',
-                     value: homeStore.networkInfo.uploadTarget.targetReached
+                     value: homeData?.networkInfo.uploadTarget.targetReached ?? false
                   }
                ]}
             />
             <Card title="Top Peer Clients" className="col-span-1 md:col-span-2">
-               <TopClientsChart peers={homeStore.peers} />
+               <TopClientsChart peers={homeData?.peers ?? []} loading={isLoading} />
             </Card>
          </div>
       </>
