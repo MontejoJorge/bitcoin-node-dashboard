@@ -170,7 +170,7 @@ const Home = () => {
                ]}
             />
             <Card title="Top Peer Clients" className="col-span-1 md:col-span-2">
-               <TopClientsChart peers={homeData?.peers ?? []} />
+               <TopClientsChart peers={homeData?.peers ?? []} loading={isLoading} />
             </Card>
          </div>
       </>
