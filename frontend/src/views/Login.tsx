@@ -7,7 +7,6 @@ import { useUserStore } from "@/store/userStore";
 export default function Login() {
    const [password, setPassword] = useState('');
    const [showPassword, setShowPassword] = useState(false);
-   const [rememberMe, setRememberMe] = useState(true);
    const [error, setError] = useState('');
 
    const passwordRef = useRef<HTMLInputElement>(null);
@@ -32,7 +31,7 @@ export default function Login() {
 
       setShowPassword(false);
 
-      await userStore.login(password, rememberMe)
+      await userStore.login(password)
          .then(() => {
             return navigate('/');
          })
@@ -73,17 +72,6 @@ export default function Login() {
                      />
                   </div>
                   {error && <div className="text-red-500 mt-2 font-medium">{error}</div>}
-                  <div className="mt-2">
-                     <input
-                        type="checkbox"
-                        id="rememberMe"
-                        checked={rememberMe}
-                        onChange={() => setRememberMe(!rememberMe)}
-                     />
-                     <label htmlFor="rememberMe" className="ps-1">
-                        Remember me
-                     </label>
-                  </div>
                   <button
                      type="submit"
                      className="bg-blue-500 text-white p-2 rounded mt-2 w-full disabled:opacity-75"

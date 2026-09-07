@@ -7,7 +7,7 @@ interface IUserStore {
    isLogged: boolean;
    jwt: string | undefined;
    loading: boolean;
-   login(password: string, rememberMe: boolean): Promise<void>;
+   login(password: string): Promise<void>;
    logout(): unknown;
 }
 
@@ -16,7 +16,7 @@ export const useUserStore = create<IUserStore>()(
       isLogged: getToken() ? true : false,
       jwt: getToken(),
       loading: false,
-      login: async (password, rememberMe) => {
+      login: async (password) => {
          set({ loading: true });
          return api.post('auth/login', { password })
             .then(({data}) => {
@@ -25,7 +25,7 @@ export const useUserStore = create<IUserStore>()(
                   jwt: data.jwt,
                   loading: false
                });
-               setToken(data.jwt, rememberMe);
+               setToken(data.jwt);
             })
             .catch((error) => {
                set({ loading: false });
